@@ -25,19 +25,19 @@ commands:
           command: |
             echo "Before Install"
 
-            # Install package
-            sudo apt install -y ccache
-
-            # Update symlinks
-            sudo /usr/sbin/update-ccache-symlinks
-
-            # Prepend ccache into the PATH
-            echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
-
-            # Source bashrc to test the new PATH
-            source ~/.bashrc && echo $PATH
             make check-whitespace
             if [ `uname` = "Linux" ]; then
+               # Install package
+              sudo apt install -y ccache
+
+              # Update symlinks
+              sudo /usr/sbin/update-ccache-symlinks
+
+              # Prepend ccache into the PATH
+              echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+
+              # Source bashrc to test the new PATH
+              source ~/.bashrc && echo $PATH
               contrib/travis_fastfail.sh || exit 1;
               mkdir -p $HOME/bin;
               ln -s /usr/bin/gcc-5 $HOME/bin/gcc;
