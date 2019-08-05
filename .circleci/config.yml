@@ -1,5 +1,5 @@
 version: 2.1
-      
+
 commands:
   default-build-steps:
     steps:
@@ -10,7 +10,7 @@ commands:
       #       pyenv global ${CIRCLECI_PYTHON_VERSION:-3.6.5}
       #       python --version
       #       pip --version
-            
+
       #       # Set the travis environment variables since they are used in various scripts
       #       echo 'export BUILD_ID='"$CIRCLE_WORKFLOW_ID" >> $BASH_ENV
       #       echo 'export CI="true"' >> $BASH_ENV
@@ -68,7 +68,7 @@ commands:
             echo "override JULIA_CPU_TARGET=generic;native" >> Make.user
             wget http://http.debian.net/debian/pool/main/m/moreutils/moreutils_0.62.orig.tar.xz
             tar -xJvf moreutils_0.62.orig.tar.xz && mv moreutils-0.62 moreutils
-      
+
             # Script
             echo "Script"
 
@@ -134,7 +134,7 @@ commands:
             if [ `uname` = "Linux" ] && [ $ARCH = "x86_64" ]; then
               cd julia && make -C doc deploy; fi
 
-jobs:  
+jobs:
   linux_32:
     machine:
       image: ubuntu-1604:201903-01
