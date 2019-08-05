@@ -4,24 +4,20 @@ commands:
   default-build-steps:
     steps:
       - checkout
-      # - run:
-      #     name: Set Environment Variables
-      #     command: |
-      #       pyenv global ${CIRCLECI_PYTHON_VERSION:-3.6.5}
-      #       python --version
-      #       pip --version
-
-      #       # Set the travis environment variables since they are used in various scripts
-      #       echo 'export BUILD_ID='"$CIRCLE_WORKFLOW_ID" >> $BASH_ENV
-      #       echo 'export CI="true"' >> $BASH_ENV
-      #       echo 'export TRAVIS='"$CIRCLECI" >> $BASH_ENV
-      #       echo 'export TRAVIS_BRANCH='"$CIRCLE_BRANCH" >> $BASH_ENV
-      #       echo 'export TRAVIS_BUILD_DIR='"$CIRCLE_WORKING_DIRECTORY" >> $BASH_ENV
-      #       echo 'export TRAVIS_JOB_ID='"$CIRCLE_BUILD_NUM" >> $BASH_ENV
-      #       echo 'export TRAVIS_JOB_NUMBER='"$CIRCLE_BUILD_NUM" >> $BASH_ENV
-      #       echo 'export TRAVIS_PULL_REQUEST='"$CIRCLE_PULL_REQUEST" >> $BASH_ENV
-      #       echo 'export TRAVIS_COMMIT='"$CIRCLE_SHA1" >> $BASH_ENV
-      #       echo 'export TRAVIS_REPO_SLUG='"$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" >> $BASH_ENV
+      - run:
+          name: Set Environment Variables
+          command: |
+            # Set the travis environment variables since they are used in various scripts
+            echo 'export BUILD_ID='"$CIRCLE_WORKFLOW_ID" >> $BASH_ENV
+            echo 'export CI="true"' >> $BASH_ENV
+            echo 'export TRAVIS='"$CIRCLECI" >> $BASH_ENV
+            echo 'export TRAVIS_BRANCH='"$CIRCLE_BRANCH" >> $BASH_ENV
+            echo 'export TRAVIS_BUILD_DIR='"$CIRCLE_WORKING_DIRECTORY" >> $BASH_ENV
+            echo 'export TRAVIS_JOB_ID='"$CIRCLE_BUILD_NUM" >> $BASH_ENV
+            echo 'export TRAVIS_JOB_NUMBER='"$CIRCLE_BUILD_NUM" >> $BASH_ENV
+            echo 'export TRAVIS_PULL_REQUEST='"$CIRCLE_PULL_REQUEST" >> $BASH_ENV
+            echo 'export TRAVIS_COMMIT='"$CIRCLE_SHA1" >> $BASH_ENV
+            echo 'export TRAVIS_REPO_SLUG='"$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" >> $BASH_ENV
       - run:
           name: Build Script
           command: |
