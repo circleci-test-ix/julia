@@ -220,5 +220,5 @@ workflows:
           <<: *branch_filters
       - linux_64:
           <<: *branch_filters
-      - osx
+      - osx:
           <<: *branch_filters
