@@ -33,6 +33,12 @@ commands:
             fi
             echo 'export TRAVIS_COMMIT='"$CIRCLE_SHA1" >> $BASH_ENV
             echo 'export TRAVIS_REPO_SLUG='"$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" >> $BASH_ENV
+
+            echo 'export CXX=${CXX:-g++}' >> $BASH_ENV
+            echo 'export CXX_FOR_BUILD=${CXX_FOR_BUILD:-g++}' >> $BASH_ENV
+            echo 'export CC=${CC:-gcc}' >> $BASH_ENV
+            echo 'export CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}' >> $BASH_ENV
+            #export PATH=/usr/lib/ccache:$PATH
       - run:
           name: Build Script
           command: |
@@ -78,7 +84,7 @@ commands:
               echo "***** Done first if"
             elif [ `uname` = "Darwin" ]; then
               brew update;
-              brew install -v jq pv ccache;
+              brew install -v jq pv ccache wget;
               export PATH="$(brew --prefix ccache)/libexec:$PATH";
               BAR="pv -i 30";
               contrib/travis_fastfail.sh || exit 1;
