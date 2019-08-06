@@ -2,8 +2,13 @@ version: 2.1
 
 commands:
   default-build-steps:
+    parameters:
+      setup:
+        type: steps
+        default: []
     steps:
       - checkout
+      - steps: << parameters.setup >>
       - run:
           name: Set Environment Variables
           command: |
@@ -23,21 +28,23 @@ commands:
       - run:
           name: Build Script
           command: |
-            echo "Before Install"
+            echo "***** Before Install"
 
             make check-whitespace
             if [ `uname` = "Linux" ]; then
+              echo "***** APT installs"
                # Install package
-              sudo apt install -y ccache
+              #sudo apt install -y ccache
 
               # Update symlinks
-              sudo /usr/sbin/update-ccache-symlinks
+              #sudo /usr/sbin/update-ccache-symlinks
 
               # Prepend ccache into the PATH
-              echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+              #echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
 
               # Source bashrc to test the new PATH
-              source ~/.bashrc && echo $PATH
+              #source ~/.bashrc && echo $PATH
+              
               contrib/travis_fastfail.sh || exit 1;
               mkdir -p $HOME/bin;
               ln -s /usr/bin/gcc-5 $HOME/bin/gcc;
@@ -53,6 +60,7 @@ commands:
               export JULIA_CPU_THREADS=4;
               export JULIA_TEST_MAXRSS_MB=1200;
               TESTSTORUN="all";
+              echo "***** Done first if"
             elif [ `uname` = "Darwin" ]; then
               brew update;
               brew install -v jq pv ccache;
@@ -74,22 +82,29 @@ commands:
               export JULIA_CPU_THREADS=2;
               export JULIA_TEST_MAXRSS_MB=600;
               TESTSTORUN="all --skip linalg/triangular subarray"; fi # TODO: re enable these if possible without timing out
+            echo "***** downloading moreutils"
             echo "override JULIA_CPU_TARGET=generic;native" >> Make.user
             wget http://http.debian.net/debian/pool/main/m/moreutils/moreutils_0.62.orig.tar.xz
+            echo "***** installing moreutils"
             tar -xJvf moreutils_0.62.orig.tar.xz && mv moreutils-0.62 moreutils
+            echo "***** done instlaling moreutils"
 
             # Script
-            echo "Script"
+            echo "***** Script"
 
             echo BUILDOPTS=$BUILDOPTS
             export BUILDOPTS
             # compile / install dependencies
+            echo "***** download cmake"
             contrib/download_cmake.sh
+            echo "***** make moreutils mispipe"
             make -C moreutils mispipe
+            echo "***** make $BUILDOPTS"
             make $BUILDOPTS -C base version_git.jl.phony
             # capture the log, but only print it if `make deps` fails
             # try to show the end of the log first, because this log might be very long (> 4MB)
             # and thus be truncated by travis
+            echo "***** capture the log"
             moreutils/mispipe "make \$BUILDOPTS NO_GIT=1 -C deps 2> deps-err.log" "$BAR" > deps.log ||
               { echo "-- deps build log stderr tail 100 --------------------------------------";
                 tail -n 100 deps-err.log;
@@ -150,7 +165,12 @@ jobs:
     environment:
       ARCH: "i686"
     steps:
-      - default-build-steps
+      - default-build-steps:
+          setup:
+            - run: |
+                sudo apt-add-repository updateubuntu-toolchain-r-test
+                sudo apt update
+                sudo apt install ccache libssl1.0.0 bar time binutils gcc-5 g++-5 gcc-5-multilib g++-5-multilib make:i386 libssl-dev:i386 gfortran-5 gfortran-5-multilib
 
   linux_64:
     machine:
@@ -158,7 +178,12 @@ jobs:
     environment:
       ARCH: "x86_64"
     steps:
-      - default-build-steps
+      - default-build-steps:
+          setup:
+            - run: |
+                sudo apt-add-repository updateubuntu-toolchain-r-test
+                sudo apt update
+                sudo apt install ccache libssl1.0.0 bar time g++-5 gfortran-5
 
   osx:
     macos:
