@@ -1,5 +1,13 @@
 version: 2.1
 
+branch_filters: &branch_filters
+  filters:
+    branches:
+      only: 
+        - master
+        - /^release-.*/
+        - /^v\d+\.\d+\.\d+$/
+
 commands:
   default-build-steps:
     parameters:
@@ -37,13 +45,20 @@ commands:
               #sudo apt install -y ccache
 
               # Update symlinks
-              #sudo /usr/sbin/update-ccache-symlinks
+              sudo /usr/sbin/update-ccache-symlinks
 
               # Prepend ccache into the PATH
-              #echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+              echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
 
               # Source bashrc to test the new PATH
-              #source ~/.bashrc && echo $PATH
+              source ~/.bashrc && echo $PATH
+              
+              sudo update-alternatives --remove-all gcc
+              sudo update-alternatives --remove-all g++
+              sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 20
+              sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 20
+              sudo update-alternatives --config gcc
+              sudo update-alternatives --config g++
 
               contrib/travis_fastfail.sh || exit 1;
               mkdir -p $HOME/bin;
@@ -201,6 +216,9 @@ workflows:
   version: 2
   build:
     jobs:
-      - linux_32
-      - linux_64
+      - linux_32:
+          <<: *branch_filters
+      - linux_64:
+          <<: *branch_filters
       - osx
+          <<: *branch_filters
