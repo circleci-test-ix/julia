@@ -47,7 +47,7 @@ commands:
                 echo 'export TRAVIS_PULL_REQUEST=false' >> $BASH_ENV
             fi
             echo 'export TRAVIS_COMMIT='"$CIRCLE_SHA1" >> $BASH_ENV
-            echo 'export TRAVIS_REPO_SLUG='"$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" >> $BASH_ENV            
+            echo 'export TRAVIS_REPO_SLUG='"$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" >> $BASH_ENV
       - run:
           name: Build Script
           command: |
