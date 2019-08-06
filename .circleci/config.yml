@@ -44,7 +44,7 @@ commands:
 
               # Source bashrc to test the new PATH
               #source ~/.bashrc && echo $PATH
-              
+
               contrib/travis_fastfail.sh || exit 1;
               mkdir -p $HOME/bin;
               ln -s /usr/bin/gcc-5 $HOME/bin/gcc;
@@ -171,7 +171,7 @@ jobs:
                 sudo dpkg --add-architecture i386
                 #sudo apt update
                 #sudo apt-get dist-upgrade
-                
+
                 sudo apt-add-repository ppa:ubuntu-toolchain-r/test
                 sudo apt update
                 sudo apt install ccache libssl1.0.0 bar time binutils gcc-5 g++-5 gcc-5-multilib g++-5-multilib make:i386 libssl-dev:i386 gfortran-5 gfortran-5-multilib
