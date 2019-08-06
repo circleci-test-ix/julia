@@ -3,7 +3,7 @@ version: 2.1
 branch_filters: &branch_filters
   filters:
     branches:
-      only: 
+      only:
         - master
         - /^release-.*/
         - /^v\d+\.\d+\.\d+$/
@@ -52,7 +52,7 @@ commands:
 
               # Source bashrc to test the new PATH
               source ~/.bashrc && echo $PATH
-              
+
               sudo update-alternatives --remove-all gcc
               sudo update-alternatives --remove-all g++
               sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 20
