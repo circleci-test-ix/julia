@@ -156,40 +156,51 @@ commands:
             make $BUILDOPTS NO_GIT=1 prefix=/tmp/julia release | moreutils/ts -s "%.s"
             make $BUILDOPTS NO_GIT=1 prefix=/tmp/julia install | moreutils/ts -s "%.s"
             make $BUILDOPTS NO_GIT=1 build-stats
+            echo "***** du -sk"
             du -sk /tmp/julia/*
+            echo "***** ls -l julia/lib"
             ls -l /tmp/julia/lib
             ls -l /tmp/julia/lib/julia
             FILES_CHANGED=$(git diff --name-only $TRAVIS_COMMIT_RANGE -- || git ls-files)
             cd .. && mv julia julia2
+            echo "***** run tests"
             # run tests
             /tmp/julia/bin/julia --sysimage-native-code=no -e 'true'
             # - /tmp/julia/bin/julia-debug --sysimage-native-code=no -e 'true'
+            echo "***** run tests 2"
             /tmp/julia/bin/julia -e 'Base.require(Main, :InteractiveUtils).versioninfo()'
+            echo "***** run tests 3"
             pushd /tmp/julia/share/julia/test
-            # skip tests if only files within the "doc" dir have changed
+            # skip tests if only files within the "doc" dir have changed            
             if [ $(echo "$FILES_CHANGED" | grep -cv '^doc/') -gt 0 ]; then
+                echo "***** FILES CHANGED"
                 /tmp/julia/bin/julia --check-bounds=yes runtests.jl $TESTSTORUN &&
                 /tmp/julia/bin/julia --check-bounds=yes runtests.jl LibGit2/online download; fi
             popd
+            echo "***** TEST EMBEDDING"
             # test that the embedding code works on our installation
             mkdir /tmp/embedding-test &&
                 make check -C /tmp/julia/share/julia/test/embedding
                     JULIA="/tmp/julia/bin/julia"
                     BIN=/tmp/embedding-test
+                    echo "***** make print-CC"
                     "$(cd julia2 && make print-CC)"
             # restore initial state and prepare for travis caching
             mv julia2 julia &&
                 rm -f julia/deps/scratch/libgit2-*/CMakeFiles/CMakeOutput.log
             # run the LLVM tests on Linux
             if [ `uname` = "Linux" ]; then
+                echo "***** pushd julia"
                 pushd julia && make -C test/llvmpasses && popd; fi
             # run the doctests on Linux 64-bit
             if [ `uname` = "Linux" ] && [ $ARCH = "x86_64" ]; then
+                echo "***** pushd julia x86_64"
                 pushd julia && make -C doc doctest=true && popd; fi
             # uncomment the following if failures are suspected to be due to the out-of-memory killer
             #    - dmesg
 
             # After Success
+            echo "***** After Sucess"
             echo "After Success"
             if [ `uname` = "Linux" ] && [ $ARCH = "x86_64" ]; then
               cd julia && make -C doc deploy; fi
