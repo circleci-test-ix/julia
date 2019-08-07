@@ -171,7 +171,7 @@ commands:
             /tmp/julia/bin/julia -e 'Base.require(Main, :InteractiveUtils).versioninfo()'
             echo "***** run tests 3"
             pushd /tmp/julia/share/julia/test
-            # skip tests if only files within the "doc" dir have changed            
+            # skip tests if only files within the "doc" dir have changed
             if [ $(echo "$FILES_CHANGED" | grep -cv '^doc/') -gt 0 ]; then
                 echo "***** FILES CHANGED"
                 /tmp/julia/bin/julia --check-bounds=yes runtests.jl $TESTSTORUN &&
