@@ -181,7 +181,7 @@ commands:
             # test that the embedding code works on our installation
             mkdir /tmp/embedding-test && make check -C /tmp/julia/share/julia/test/embedding JULIA="/tmp/julia/bin/julia" BIN=/tmp/embedding-test "$(cd julia2 && make print-CC)"
             echo "***** make print-CC"
-            
+
             # restore initial state and prepare for travis caching
             mv julia2 julia &&
                 rm -f julia/deps/scratch/libgit2-*/CMakeFiles/CMakeOutput.log
