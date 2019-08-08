@@ -105,9 +105,9 @@ commands:
               export BUILDOPTS="$BUILDOPTS spawn=\$(JULIA_MACOS_SPAWN)";
               export JULIA_CPU_THREADS=2;
               export JULIA_TEST_MAXRSS_MB=600;
-              TESTSTORUN="all --skip linalg/triangular subarray"; fi # TODO: re enable these if possible without timing out            
+              TESTSTORUN="all --skip linalg/triangular subarray"; fi # TODO: re enable these if possible without timing out
             echo "override JULIA_CPU_TARGET=generic;native" >> Make.user
-            wget http://http.debian.net/debian/pool/main/m/moreutils/moreutils_0.62.orig.tar.xz            
+            wget http://http.debian.net/debian/pool/main/m/moreutils/moreutils_0.62.orig.tar.xz
             tar -xJvf moreutils_0.62.orig.tar.xz && mv moreutils-0.62 moreutils
 
             #
