@@ -20,6 +20,8 @@ commands:
         default: []
     steps:
       - checkout
+      - restore_cache:
+          key: ccache-{{ arch }}-{{ .Environment.CIRCLE_JOB }}
       - steps: << parameters.setup >>
       - compare-url/reconstruct
       - compare-url/use:
@@ -51,25 +53,12 @@ commands:
       - run:
           name: Build Script
           command: |
-            echo "***** Before Install"
+            #
+            # Before Install
+            echo "** Before Install **"
 
             make check-whitespace
             if [ `uname` = "Linux" ]; then
-              echo "***** APT installs"
-               # Install package
-              #sudo apt install -y ccache
-
-              # Update symlinks
-              #sudo /usr/sbin/update-ccache-symlinks
-
-              # Prepend ccache into the PATH
-              echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
-
-              # Source bashrc to test the new PATH
-              source ~/.bashrc && echo $PATH
-
-              #sudo update-alternatives --remove-all gcc
-              #sudo update-alternatives --remove-all g++
               sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 20
               sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 20
               sudo update-alternatives --config gcc
@@ -79,7 +68,7 @@ commands:
               export CXX_FOR_BUILD=${CXX_FOR_BUILD:-g++}
               export CC=${CC:-gcc}
               export CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
-              #export PATH=/usr/lib/ccache:$PATH
+              export PATH=/usr/lib/ccache:$PATH
 
               contrib/travis_fastfail.sh || exit 1;
               mkdir -p $HOME/bin;
@@ -96,7 +85,6 @@ commands:
               export JULIA_CPU_THREADS=4;
               export JULIA_TEST_MAXRSS_MB=1200;
               TESTSTORUN="all";
-              echo "***** Done first if"
             elif [ `uname` = "Darwin" ]; then
               brew update;
               brew install -v jq pv ccache wget;
@@ -117,30 +105,24 @@ commands:
               export BUILDOPTS="$BUILDOPTS spawn=\$(JULIA_MACOS_SPAWN)";
               export JULIA_CPU_THREADS=2;
               export JULIA_TEST_MAXRSS_MB=600;
-              TESTSTORUN="all --skip linalg/triangular subarray"; fi # TODO: re enable these if possible without timing out
-            echo "***** downloading moreutils"
+              TESTSTORUN="all --skip linalg/triangular subarray"; fi # TODO: re enable these if possible without timing out            
             echo "override JULIA_CPU_TARGET=generic;native" >> Make.user
-            wget http://http.debian.net/debian/pool/main/m/moreutils/moreutils_0.62.orig.tar.xz
-            echo "***** installing moreutils"
+            wget http://http.debian.net/debian/pool/main/m/moreutils/moreutils_0.62.orig.tar.xz            
             tar -xJvf moreutils_0.62.orig.tar.xz && mv moreutils-0.62 moreutils
-            echo "***** done instlaling moreutils"
 
+            #
             # Script
-            echo "***** Script"
+            echo "** Script **"
 
             echo BUILDOPTS=$BUILDOPTS
             export BUILDOPTS
             # compile / install dependencies
-            echo "***** download cmake"
             contrib/download_cmake.sh
-            echo "***** make moreutils mispipe"
             make -C moreutils mispipe
-            echo "***** make $BUILDOPTS"
             make $BUILDOPTS -C base version_git.jl.phony
             # capture the log, but only print it if `make deps` fails
             # try to show the end of the log first, because this log might be very long (> 4MB)
             # and thus be truncated by travis
-            echo "***** capture the log"
             moreutils/mispipe "make \$BUILDOPTS NO_GIT=1 -C deps 2> deps-err.log" "$BAR" > deps.log ||
               { echo "-- deps build log stderr tail 100 --------------------------------------";
                 tail -n 100 deps-err.log;
@@ -156,51 +138,44 @@ commands:
             make $BUILDOPTS NO_GIT=1 prefix=/tmp/julia release | moreutils/ts -s "%.s"
             make $BUILDOPTS NO_GIT=1 prefix=/tmp/julia install | moreutils/ts -s "%.s"
             make $BUILDOPTS NO_GIT=1 build-stats
-            echo "***** du -sk"
             du -sk /tmp/julia/*
-            echo "***** ls -l julia/lib"
             ls -l /tmp/julia/lib
             ls -l /tmp/julia/lib/julia
             FILES_CHANGED=$(git diff --name-only $TRAVIS_COMMIT_RANGE -- || git ls-files)
             cd .. && mv julia julia2
-            echo "***** run tests"
             # run tests
             /tmp/julia/bin/julia --sysimage-native-code=no -e 'true'
             # - /tmp/julia/bin/julia-debug --sysimage-native-code=no -e 'true'
             echo "***** run tests 2"
             /tmp/julia/bin/julia -e 'Base.require(Main, :InteractiveUtils).versioninfo()'
-            echo "***** run tests 3"
             pushd /tmp/julia/share/julia/test
             # skip tests if only files within the "doc" dir have changed
             if [ $(echo "$FILES_CHANGED" | grep -cv '^doc/') -gt 0 ]; then
-                echo "***** FILES CHANGED"
                 /tmp/julia/bin/julia --check-bounds=yes runtests.jl $TESTSTORUN &&
                 /tmp/julia/bin/julia --check-bounds=yes runtests.jl LibGit2/online download; fi
             popd
-            echo "***** TEST EMBEDDING"
             # test that the embedding code works on our installation
             mkdir /tmp/embedding-test && make check -C /tmp/julia/share/julia/test/embedding JULIA="/tmp/julia/bin/julia" BIN=/tmp/embedding-test "$(cd julia2 && make print-CC)"
-            echo "***** make print-CC"
-
             # restore initial state and prepare for travis caching
-            mv julia2 julia &&
-                rm -f julia/deps/scratch/libgit2-*/CMakeFiles/CMakeOutput.log
+            mv julia2 julia && rm -f julia/deps/scratch/libgit2-*/CMakeFiles/CMakeOutput.log
             # run the LLVM tests on Linux
             if [ `uname` = "Linux" ]; then
-                echo "***** pushd julia"
                 pushd julia && make -C test/llvmpasses && popd; fi
             # run the doctests on Linux 64-bit
             if [ `uname` = "Linux" ] && [ $ARCH = "x86_64" ]; then
-                echo "***** pushd julia x86_64"
                 pushd julia && make -C doc doctest=true && popd; fi
             # uncomment the following if failures are suspected to be due to the out-of-memory killer
             #    - dmesg
 
+            #
             # After Success
-            echo "***** After Sucess"
-            echo "After Success"
+            echo "** After Success **"
             if [ `uname` = "Linux" ] && [ $ARCH = "x86_64" ]; then
               cd julia && make -C doc deploy; fi
+      - save_cache:
+          key: ccache-{{ arch }}-{{ .Environment.CIRCLE_JOB }}
+          paths:
+            - ~/.ccache
 
 jobs:
   linux_32:
@@ -214,9 +189,6 @@ jobs:
           setup:
             - run: |
                 sudo dpkg --add-architecture i386
-                #sudo apt update
-                #sudo apt-get dist-upgrade
-
                 sudo apt-add-repository ppa:ubuntu-toolchain-r/test
                 sudo apt update
                 sudo apt install ccache libssl1.0.0 bar time binutils gcc-5 g++-5 gcc-5-multilib g++-5-multilib make:i386 libssl-dev:i386 gfortran-5 gfortran-5-multilib
